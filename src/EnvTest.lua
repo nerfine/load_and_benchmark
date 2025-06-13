@@ -34,18 +34,18 @@ local errorLog = {}
 local injectedLibraries = {}
 
 local initialGuiState = {}
-for _, guiElement in pairs(game.Players.LocalPlayer.PlayerGui:GetChildren()) do
-	if guiElement:IsA("ScreenGui") then
-		initialGuiState[guiElement.Name] = guiElement
+for _, gui in pairs(game.Players.LocalPlayer.PlayerGui:GetChildren()) do
+	if gui:IsA("ScreenGui") then
+		initialGuiState[gui.Name] = gui
 	end
 end
 
 local function unloadUILibraries()
-	for _, guiElement in pairs(game.Players.LocalPlayer.PlayerGui:GetChildren()) do
-		if guiElement:IsA("ScreenGui") then
-			if injectedLibraries[guiElement.Name] then
-				guiElement:Destroy()
-				print("[✅] UI Library removed: " .. guiElement.Name)
+	for _, gui in pairs(game.Players.LocalPlayer.PlayerGui:GetChildren()) do
+		if gui:IsA("ScreenGui") then
+			if injectedLibraries[gui.Name] then
+				gui:Destroy()
+				print("[✅] UI Library removed: " .. gui.Name)
 			end
 		end
 	end
@@ -167,12 +167,12 @@ results["Monolith"] = safeCheckLibrary("https://raw.githubusercontent.com/wis-h/
 
 unloadUILibraries()
 
-for _, guiElement in pairs(game.Players.LocalPlayer.PlayerGui:GetChildren()) do
-	if guiElement:IsA("ScreenGui") then
+for _, gui in pairs(game.Players.LocalPlayer.PlayerGui:GetChildren()) do
+	if gui:IsA("ScreenGui") then
 		-- Check if it's not in the initial state
-		if not initialGuiState[guiElement.Name] then
-			guiElement:Destroy()
-			print("[❌] New UI Library removed: " .. guiElement.Name)
+		if not initialGuiState[gui.Name] then
+			gui:Destroy()
+			print("[❌] New UI Library removed: " .. gui.Name)
 		end
 	end
 end
