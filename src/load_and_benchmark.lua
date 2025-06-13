@@ -30,18 +30,18 @@ local errorLog = {}
 local injectedLibraries = {}
 
 local initialGuiState = {}
-for _, guiElement in pairs(game.Players.LocalPlayer.PlayerGui:GetChildren()) do
-	if guiElement:IsA("ScreenGui") then
-		initialGuiState[guiElement.Name] = guiElement
+for _, gui in pairs(game.Players.LocalPlayer.PlayerGui:GetChildren()) do
+	if gui:IsA("ScreenGui") then
+		initialGuiState[gui.Name] = gui
 	end
 end
 
 local function unloadUILibraries()
-	for _, guiElement in pairs(game.Players.LocalPlayer.PlayerGui:GetChildren()) do
-		if guiElement:IsA("ScreenGui") then
-			if injectedLibraries[guiElement.Name] then
-				guiElement:Destroy()
-				print("[✅] UI Library removed: " .. guiElement.Name)
+	for _, gui in pairs(game.Players.LocalPlayer.PlayerGui:GetChildren()) do
+		if gui:IsA("ScreenGui") then
+			if injectedLibraries[gui.Name] then
+				gui:Destroy()
+				print("[✅] UI Library removed: " .. gui.Name)
 			end
 		end
 	end
@@ -148,26 +148,52 @@ end
 
 local results = {}
 results["OrionLib"] = safeCheckLibrary("https://raw.githubusercontent.com/jensonhirst/Orion/main/source", "OrionLib")
-results["Rayfield"] = safeCheckLibrary("https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/main/source.lua", "Rayfield")
-results["SiriusLib"] = safeCheckLibrary("https://raw.githubusercontent.com/SiriusSoftwareLtd/Sirius/refs/heads/request/source.lua", "SiriusLib")
-results["WallyV3"] = safeCheckLibrary("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/wall%20v3", "WallyV3")
-results["ReGui"] = safeCheckLibrary("https://raw.githubusercontent.com/depthso/Dear-ReGui/refs/heads/main/ReGui.lua", "ImGui")
-results["Bracket"] = safeCheckLibrary("https://raw.githubusercontent.com/wis-h/ui-libraries/refs/heads/main/Bracket/Source.lua", "Bracket")
-results["Obsidian"] = safeCheckLibrary("https://raw.githubusercontent.com/deividcomsono/Obsidian/refs/heads/main/Library.lua", "Obsidian")
-results["LinoriaLib"] = safeCheckLibrary("https://raw.githubusercontent.com/mstudio45/LinoriaLib/refs/heads/main/Library.lua", "LinoriaLib")
-results["Darius (Wax Bundled)"] = safeCheckLibrary("https://raw.githubusercontent.com/idonthaveoneatm/darius/refs/heads/main/bundled.luau", "DariusWax")
-results["Darius (Minified)"] = safeCheckLibrary("https://raw.githubusercontent.com/idonthaveoneatm/darius/refs/heads/main/minified.luau","DariusMinified")
-results["Darius (RBXM Suite)"] = safeCheckLibrary("https://raw.githubusercontent.com/idonthaveoneatm/darius/refs/heads/main/rbxmSuite.luau", "DariusRBXM")
-results["Linoria (wis-h)"] = safeCheckLibrary("https://raw.githubusercontent.com/wis-h/ui-libraries/refs/heads/main/Linoria-mstudio/Library.lua","LinoriaWisH")
-results["Monolith"] = safeCheckLibrary("https://raw.githubusercontent.com/wis-h/ui-libraries/refs/heads/main/Monolith/Source.lua", "Monolith")
+results["Rayfield"] =
+	safeCheckLibrary("https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/main/source.lua", "Rayfield")
+results["SiriusLib"] = safeCheckLibrary(
+	"https://raw.githubusercontent.com/SiriusSoftwareLtd/Sirius/refs/heads/request/source.lua",
+	"SiriusLib"
+)
+results["WallyV3"] =
+	safeCheckLibrary("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/wall%20v3", "WallyV3")
+results["ReGui"] =
+	safeCheckLibrary("https://raw.githubusercontent.com/depthso/Dear-ReGui/refs/heads/main/ReGui.lua", "ImGui")
+results["Bracket"] = safeCheckLibrary(
+	"https://raw.githubusercontent.com/wis-h/ui-libraries/refs/heads/main/Bracket/Source.lua",
+	"Bracket"
+)
+results["Obsidian"] =
+	safeCheckLibrary("https://raw.githubusercontent.com/deividcomsono/Obsidian/refs/heads/main/Library.lua", "Obsidian")
+results["LinoriaLib"] =
+	safeCheckLibrary("https://raw.githubusercontent.com/mstudio45/LinoriaLib/refs/heads/main/Library.lua", "LinoriaLib")
+results["Darius (Wax Bundled)"] = safeCheckLibrary(
+	"https://raw.githubusercontent.com/idonthaveoneatm/darius/refs/heads/main/bundled.luau",
+	"DariusWax"
+)
+results["Darius (Minified)"] = safeCheckLibrary(
+	"https://raw.githubusercontent.com/idonthaveoneatm/darius/refs/heads/main/minified.luau",
+	"DariusMinified"
+)
+results["Darius (RBXM Suite)"] = safeCheckLibrary(
+	"https://raw.githubusercontent.com/idonthaveoneatm/darius/refs/heads/main/rbxmSuite.luau",
+	"DariusRBXM"
+)
+results["Linoria (wis-h)"] = safeCheckLibrary(
+	"https://raw.githubusercontent.com/wis-h/ui-libraries/refs/heads/main/Linoria-mstudio/Library.lua",
+	"LinoriaWisH"
+)
+results["Monolith"] = safeCheckLibrary(
+	"https://raw.githubusercontent.com/wis-h/ui-libraries/refs/heads/main/Monolith/Source.lua",
+	"Monolith"
+)
 
 unloadUILibraries()
 
-for _, guiElement in pairs(game.Players.LocalPlayer.PlayerGui:GetChildren()) do
-	if guiElement:IsA("ScreenGui") then
-		if not initialGuiState[guiElement.Name] then
-			guiElement:Destroy()
-			print("[❌] New UI Library removed: " .. guiElement.Name)
+for _, gui in pairs(game.Players.LocalPlayer.PlayerGui:GetChildren()) do
+	if gui:IsA("ScreenGui") then
+		if not initialGuiState[gui.Name] then
+			gui:Destroy()
+			print("[❌] New UI Library removed: " .. gui.Name)
 		end
 	end
 end
@@ -279,7 +305,7 @@ wait(1)
 print("===============================================")
 print("   🚀 Function Benchmark by HTDBarsi")
 print("===============================================")
-print("Total Points: " .. points .. " / Max Points: 55")
+print("Total Points: " .. points .. " / Max Points: 54")
 
 print("--- 🛠️ Libraries ---")
 for lib, status in pairs(results) do
@@ -1629,3 +1655,79 @@ print("              ⛔ END OF THE SUMMARY ⛔      ")
 print("===========================================")
 
 runStressTests()
+
+task.wait(0.5)
+
+print("🌟  FibonacciTest.lua Initialization  🌟")
+print("=======================================")
+task.wait(0.5)
+local executorName = identifyexecutor and identifyexecutor() or "Unknown Executor"
+task.wait(1)
+print("✨ Loading FibonacciTest.lua... 🚀")
+task.wait(0.1)
+print("⏳ Please Wait... ⏳")
+print("=======================================")
+
+task.wait(2)
+
+local function add(a, b)
+	local res, carry = {}, 0
+	a, b = tostring(a), tostring(b)
+	local maxLen = math.max(#a, #b)
+	a = string.rep("0", maxLen - #a) .. a
+	b = string.rep("0", maxLen - #b) .. b
+	for i = maxLen, 1, -1 do
+		local sum = tonumber(a:sub(i, i)) + tonumber(b:sub(i, i)) + carry
+		carry = math.floor(sum / 10)
+		res[i] = sum % 10
+	end
+	if carry > 0 then
+		table.insert(res, 1, carry)
+	end
+	return table.concat(res)
+end
+
+local function fib(n)
+	local a, b = "0", "1"
+	for _ = 2, n do
+		a, b = b, add(a, b)
+	end
+	return b
+end
+
+local function stressTest(n)
+	local start = os.clock()
+	local result = fib(n)
+	local duration = os.clock() - start
+
+	local i9_14900ks_reference_time = 1.2 -- hypothetical seconds
+
+	print("===========================================")
+	print("              🔥 FIBONACCI TEST RESULTS 🔥      ")
+	print("===========================================")
+	print("🔢 Fibonacci Number: F(" .. n .. ")")
+	print("📏 Number of Digits: " .. #result)
+	print("⏱️  Time Taken: " .. string.format("%.4f", duration) .. " seconds")
+	print("-------------------------------------------")
+	print("⚙️ Reference CPU: Intel Core i9-14900KS")
+	print("⏳ Reference Time: " .. i9_14900ks_reference_time .. " seconds")
+	print("-------------------------------------------")
+
+	local diff = duration - i9_14900ks_reference_time
+	if duration > i9_14900ks_reference_time then
+		local slower_by = string.format("%.2f", diff)
+		local percent_perf = string.format("%.2f", (i9_14900ks_reference_time / duration) * 100)
+		print("🐢 Your system is slower by " .. slower_by .. " seconds.")
+		print("📉 Performance: " .. percent_perf .. "% of the i9-14900KS")
+	else
+		local faster_by = string.format("%.2f", -diff)
+		local percent_perf = string.format("%.2f", (duration / i9_14900ks_reference_time) * 100)
+		print("🚀 Your system is faster by " .. faster_by .. " seconds!")
+		print("📈 i9-14900KS runs at " .. percent_perf .. "% of your system speed.")
+	end
+	print("===========================================")
+	print("           ✅ Test Complete! ✅           ")
+	print("===========================================")
+end
+
+stressTest(10000)
