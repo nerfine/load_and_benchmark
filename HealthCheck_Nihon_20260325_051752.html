@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ExecEnvHealthCheck 3.2 — Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0d0d;--surface:#111;--panel:#161616;--card:#1a1a1a;
+  --border:#2a2a2a;--border2:#383838;
+  --text:#e8e5df;--muted:#666;--faint:#222;
+  --pass:#39ff6a;--fail:#ff3939;--warn:#ffbb00;--info:#38b6ff;--purple:#bb86fc;
+  --pass-dim:rgba(57,255,106,.08);--fail-dim:rgba(255,57,57,.08);
+  --warn-dim:rgba(255,187,0,.08);--info-dim:rgba(56,182,255,.08);
+  --shadow:rgba(0,0,0,.6);
+}
+[data-theme="light"]{
+  --bg:#f0ede6;--surface:#e8e4dc;--panel:#fff;--card:#f5f2ec;
+  --border:#d4d0c8;--border2:#b8b4ac;
+  --text:#1a1814;--muted:#888;--faint:#e0ddd6;
+  --pass:#0a7a30;--fail:#c0000a;--warn:#a06000;--info:#005b99;--purple:#6a00d4;
+  --pass-dim:rgba(10,122,48,.08);--fail-dim:rgba(192,0,10,.08);
+  --warn-dim:rgba(160,96,0,.08);--info-dim:rgba(0,91,153,.08);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Space Mono',monospace;font-size:13px;line-height:1.6;
+  transition:background .25s,color .25s;
+}
+
+header{
+  padding:40px 60px 36px;
+  border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:flex-end;
+  gap:24px;flex-wrap:wrap;
+}
+.h-left{}
+.eyebrow{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.h-title{font-family:'Syne',sans-serif;font-size:clamp(32px,5vw,56px);font-weight:800;line-height:1;letter-spacing:-1px}
+.h-title span{color:var(--muted);font-weight:400}
+.h-right{display:flex;flex-direction:column;align-items:flex-end;gap:12px}
+.meta{font-size:11px;color:var(--muted);line-height:2;text-align:right}
+.meta strong{color:var(--text)}
+.theme-btn{
+  font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;background:transparent;border:1px solid var(--border2);
+  color:var(--muted);padding:6px 14px;cursor:pointer;transition:all .2s;
+}
+.theme-btn:hover{border-color:var(--text);color:var(--text)}
+
+nav{
+  padding:0 60px;
+  border-bottom:1px solid var(--border);
+  display:flex;gap:0;overflow-x:auto;
+}
+nav a{
+  display:block;color:var(--muted);text-decoration:none;
+  font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  padding:14px 18px;border-bottom:2px solid transparent;
+  white-space:nowrap;transition:color .15s,border-color .15s;
+}
+nav a:hover{color:var(--text)}
+nav a.active{color:var(--text);border-bottom-color:var(--text)}
+
+main{padding:56px 60px;max-width:1360px;margin:0 auto;display:flex;flex-direction:column;gap:64px}
+.section{scroll-margin-top:20px;animation:fadeup .4s ease both}
+.section:nth-child(1){animation-delay:.04s}.section:nth-child(2){animation-delay:.08s}
+.section:nth-child(3){animation-delay:.12s}.section:nth-child(4){animation-delay:.16s}
+.section:nth-child(5){animation-delay:.20s}.section:nth-child(6){animation-delay:.24s}
+.sh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:24px}
+.sh-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;letter-spacing:-0.5px}
+.sh-sub{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.stat-card{
+  background:var(--panel);
+  padding:20px 18px 18px;
+  display:flex;flex-direction:column;gap:4px;
+  position:relative;overflow:visible;
+  min-width:0;
+}
+.stat-val{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(22px, 3.6vw, 36px);
+  font-weight:800;line-height:1;letter-spacing:-1px;
+  white-space:nowrap;
+  max-width:100%;
+}
+.stat-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:1px;
+  background:var(--border);
+  border:1px solid var(--border);
+}
+@media(max-width:900px){
+  .stat-grid { grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); }
+  .stat-val { font-size:clamp(20px, 5vw, 30px); }
+}
+
+.stat-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.stat-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.stat-line{position:absolute;bottom:0;left:0;right:0;height:2px}
+.stat-pass .stat-val{color:var(--pass)}.stat-pass .stat-line{background:var(--pass)}
+.stat-fail .stat-val{color:var(--fail)}.stat-fail .stat-line{background:var(--fail)}
+.stat-warn .stat-val{color:var(--warn)}.stat-warn .stat-line{background:var(--warn)}
+.stat-info .stat-val{color:var(--info)}.stat-info .stat-line{background:var(--info)}
+.stat-purple .stat-val{color:var(--purple)}.stat-purple .stat-line{background:var(--purple)}
+
+.banner{
+  padding:12px 16px;font-size:11px;letter-spacing:1px;
+  border-left:3px solid;margin-bottom:16px;
+}
+.banner-ok{background:var(--pass-dim);border-color:var(--pass);color:var(--pass)}
+.banner-warn{background:var(--fail-dim);border-color:var(--fail);color:var(--fail)}
+
+.tbl-wrap{border:1px solid var(--border);overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{
+  background:var(--surface);
+  font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);
+  padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--card)}
+tbody td{padding:10px 16px;vertical-align:middle}
+td.td-name{font-size:12px;font-weight:700;letter-spacing:.5px}
+td.td-msg{color:var(--muted);font-size:11px;max-width:320px}
+
+.r-pass td:first-child{border-left:2px solid var(--pass)}
+.r-fail td:first-child{border-left:2px solid var(--fail)}
+.r-skip td:first-child{border-left:2px solid var(--muted)}
+
+.tag{
+  display:inline-block;font-size:9px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;padding:2px 7px;
+}
+.tag-pass{background:var(--pass-dim);color:var(--pass)}
+.tag-fail{background:var(--fail-dim);color:var(--fail)}
+.tag-skip{background:var(--faint);color:var(--muted)}
+.tag-warn{background:var(--warn-dim);color:var(--warn)}
+
+.src-btn{
+  font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;
+  text-transform:uppercase;background:transparent;border:1px solid var(--border2);
+  color:var(--muted);padding:4px 10px;cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.src-btn:hover{border-color:var(--fail);color:var(--fail)}
+.src-btn.open{border-color:var(--text);color:var(--text)}
+.src-row{display:none}
+.src-row.open{display:table-row}
+.src-cell{padding:0!important;border-left:2px solid var(--fail)!important}
+.src-pre{
+  background:var(--surface);color:var(--text);
+  font-family:'Space Mono',monospace;font-size:11px;line-height:1.75;
+  padding:16px 20px;overflow-x:auto;white-space:pre;
+  border-top:1px solid var(--border);
+}
+
+.td-ips{vertical-align:middle}
+.ips-val{display:block;margin-bottom:4px;font-size:11px;color:var(--info)}
+.ips-track{height:2px;background:var(--faint);width:80px}
+.ips-fill{height:100%;background:var(--info)}
+
+.fn-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.fn-chip{
+  font-size:10px;letter-spacing:1px;
+  padding:4px 10px;
+  background:var(--fail-dim);color:var(--fail);
+  border:1px solid rgba(255,57,57,.2);
+}
+
+.fib-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border)}
+
+footer{
+  border-top:1px solid var(--border);padding:20px 60px;
+  font-size:10px;color:var(--muted);letter-spacing:1px;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+}
+
+@keyframes fadeup{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:720px){
+  header,main,nav,footer{padding-left:20px;padding-right:20px}
+  .fib-grid{grid-template-columns:1fr}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-left">
+    <div class="eyebrow">executor health report &nbsp;·&nbsp; v3.2</div>
+    <div class="h-title">EXEC<br><span>HEALTH</span></div>
+  </div>
+  <div class="h-right">
+    <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">LIGHT MODE</button>
+    <div class="meta">
+      <div><strong>Nihon</strong></div>
+      <div>2026-03-25 05:16:58</div>
+      <div>54.38s total &nbsp;·&nbsp; 7.08 MB</div>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <a href="#overview"  class="active">OVERVIEW</a>
+  <a href="#security">SECURITY</a>
+  <a href="#functions">FUNCTIONS</a>
+  <a href="#ui">UI LIBS</a>
+  <a href="#stress">STRESS</a>
+  <a href="#fibonacci">FIBONACCI</a>
+</nav>
+
+<main>
+
+<section class="section" id="overview">
+  <div class="sh">
+    <div class="sh-title">OVERVIEW</div>
+    <div class="sh-sub">ALL MODULES</div>
+  </div>
+  <div class="stat-grid">
+    <div class='stat-card stat-pass'><div class='stat-val'>100%</div><div class='stat-label'>SECURITY</div><div class='stat-sub'>91 mitigated / 0 vulnerable</div><div class='stat-line'></div></div>    <div class='stat-card stat-pass'><div class='stat-val'>100%</div><div class='stat-label'>FUNCTIONS</div><div class='stat-sub'>56 / 56 present</div><div class='stat-line'></div></div>    <div class='stat-card stat-pass'><div class='stat-val'>84%</div><div class='stat-label'>UI LIBS</div><div class='stat-sub'>11 / 13 loaded</div><div class='stat-line'></div></div>    <div class='stat-card stat-pass'><div class='stat-val'>6/6</div><div class='stat-label'>STRESS</div><div class='stat-sub'>5,149,400 avg iter/s</div><div class='stat-line'></div></div>    <div class='stat-card stat-purple'><div class='stat-val'>F(10,000)</div><div class='stat-label'>FIBONACCI</div><div class='stat-sub'>2,090 digits — 3.2835s</div><div class='stat-line'></div></div>  </div>
+</section>
+
+<section class="section" id="security">
+  <div class="sh">
+    <div class="sh-title">SECURITY</div>
+    <div class="sh-sub">113 TESTS</div>
+  </div>
+  <div class='banner banner-ok'>✓  ALL VECTORS MITIGATED — no exploitable paths detected.</div>  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>TEST NAME</th>
+        <th>RESULT</th>
+        <th>DETAIL</th>
+        <th></th>
+      </tr></thead>
+      <tbody>
+        <tr class='r-pass'><td class='td-name'>HttpRbxApiService:PostAsync()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>HttpRbxApiService:PostAsyncFullUrl()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>HttpRbxApiService:GetAsyncFullUrl()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MarketplaceService:PerformPurchaseV2()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MarketplaceService:PromptBundlePurchase()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MarketplaceService:PromptGamePassPurchase()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MarketplaceService:PromptProductPurchase()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MarketplaceService:PromptPurchase()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MarketplaceService:PromptRobloxPurchase()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MarketplaceService:PromptThirdPartyPurchase()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MarketplaceService:PerformPurchase()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MarketplaceService:GetRobuxBalance()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MarketplaceService:PromptNativePurchaseWithLocalPlayer()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MarketplaceService:PromptNativePurchase()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MarketplaceService:PromptCollectiblesPurchase()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>GuiService:OpenBrowserWindow()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>GuiService:OpenNativeOverlay()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>GuiService:OpenBrowserWindow()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>BrowserService:EmitHybridEvent()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>BrowserService:ExecuteJavaScript()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>BrowserService:OpenBrowserWindow()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>BrowserService:OpenNativeOverlay()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>BrowserService:ReturnToJavaScript()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>BrowserService:SendCommand()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MessageBusService:Call()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MessageBusService:GetLast()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MessageBusService:GetMessageId()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MessageBusService:GetProtocolMethodRequestMessageId()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MessageBusService:GetProtocolMethodResponseMessageId()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MessageBusService:MakeRequest()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MessageBusService:Publish()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MessageBusService:PublishProtocolMethodRequest()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MessageBusService:PublishProtocolMethodResponse()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MessageBusService:Subscribe()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MessageBusService:SubscribeToProtocolMethodRequest()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MessageBusService:SubscribeToProtocolMethodResponse()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>OpenCloudService:HttpRequestAsync()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>ScriptContext:AddCoreScriptLocal()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>DataModel:Load()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>DataModel:OpenScreenshotsFolder()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>DataModel:OpenVideosFolder()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>OmniRecommendationsService:MakeRequest()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Players:ReportAbuse()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Players:ReportAbuseV3()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>CoreGui:TakeScreenshot()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Robux API Access</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>ScriptContext:AddCoreScriptLocal</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>MessageBusService:Publish (URL)</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>os.execute()</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>ContentProvider:PreloadAsync</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>listfiles() root access</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>System32 Access Attempt</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>User Directory Enumeration</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Program Files Write Access</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Startup Folder Persistence</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Browser Data Access</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>System: OS/IO Library RCE</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>File System: UNC Path Bypass</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Network: file:// Protocol Access</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>System: Console Spam/Freeze</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>WARNING: Allowed setting massive console title</td><td></td></tr><tr class='r-pass'><td class='td-name'>System: FFI Exposure</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Process Injection Attempt</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>DLL Injection Test</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Data Exfiltration Test</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Environment Variable Access</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Hidden File Creation</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Chrome Password Theft</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Discord Token Extraction</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Steam Session Hijacking</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>SSH Key Theft</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Browser Cookie Extraction</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Cryptocurrency Wallet Theft</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Module Script Injection</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>CoreGui Access</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Plugin Security Bypass</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Require Hijacking</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Metatable Protection Bypass</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Memory Dump Capability</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Stack Trace Manipulation</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Heap Spray Detection</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Temp Folder Write Access</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>AppData Roaming Access</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Desktop File Access</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Downloads Folder Enumeration</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Documents Folder Access</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>File Extension Spoofing</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>Path Traversal (Relative)</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>File Overwrite Protection</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>WebSocket Connection</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>FTP Connection Attempt</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>nil</td><td></td></tr><tr class='r-pass'><td class='td-name'>IP Geolocation Leak</td><td><span class='tag tag-pass'>MITIGATED</span></td><td class='td-msg'>WARNING: IP geolocation accessible</td><td></td></tr><tr class='r-skip'><td class='td-name'>Clipboard Data Theft</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>Executor does not support function</td><td></td></tr><tr class='r-skip'><td class='td-name'>Registry Key Creation</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>Executor does not support function</td><td></td></tr><tr class='r-skip'><td class='td-name'>Run Key Persistence</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>Executor does not support function</td><td></td></tr><tr class='r-skip'><td class='td-name'>Registry Enumeration</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>Executor does not support function</td><td></td></tr><tr class='r-skip'><td class='td-name'>Installed Software Enumeration</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>Executor does not support function</td><td></td></tr><tr class='r-skip'><td class='td-name'>UAC Bypass Attempt</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>Executor does not support function</td><td></td></tr><tr class='r-skip'><td class='td-name'>Admin Rights Check</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>Executor does not support function</td><td></td></tr><tr class='r-skip'><td class='td-name'>Service Creation</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>Executor does not support function</td><td></td></tr><tr class='r-skip'><td class='td-name'>Scheduled Task Creation</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>Executor does not support function</td><td></td></tr><tr class='r-skip'><td class='td-name'>WMI Event Subscription</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>Executor does not support function</td><td></td></tr><tr class='r-skip'><td class='td-name'>WiFi Password Extraction</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>Executor does not support function</td><td></td></tr><tr class='r-skip'><td class='td-name'>Saved RDP Credentials</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>Executor does not support function</td><td></td></tr><tr class='r-skip'><td class='td-name'>Winlogon Registry Persistence</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>Executor does not support OS commands</td><td></td></tr><tr class='r-skip'><td class='td-name'>BITS Job Abuse</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>Executor does not support OS commands</td><td></td></tr><tr class='r-skip'><td class='td-name'>COM Hijacking Persistence</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>Executor does not support OS commands</td><td></td></tr><tr class='r-skip'><td class='td-name'>Process List Enumeration</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>Executor does not support function</td><td></td></tr><tr class='r-skip'><td class='td-name'>Process Termination</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>Executor does not support function</td><td></td></tr><tr class='r-skip'><td class='td-name'>Anti-Virus Detection</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>Executor does not support function</td><td></td></tr><tr class='r-skip'><td class='td-name'>Symbolic Link Creation</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>Executor does not support function</td><td></td></tr><tr class='r-skip'><td class='td-name'>Hidden Folder Creation</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>Executor does not support function</td><td></td></tr><tr class='r-skip'><td class='td-name'>Local Network Scanning</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>executor_crash</td><td></td></tr><tr class='r-skip'><td class='td-name'>Port Scanning Capability</td><td><span class='tag tag-skip'>SKIPPED</span></td><td class='td-msg'>executor_crash</td><td></td></tr>      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="functions">
+  <div class="sh">
+    <div class="sh-title">FUNCTIONS</div>
+    <div class="sh-sub">API SURFACE</div>
+  </div>
+  <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+    <div class='stat-card stat-pass'><div class='stat-val'>56</div><div class='stat-label'>PRESENT</div><div class='stat-line'></div></div>    <div class='stat-card stat-fail'><div class='stat-val'>0</div><div class='stat-label'>MISSING</div><div class='stat-line'></div></div>    <div class='stat-card stat-pass'><div class='stat-val'>100%</div><div class='stat-label'>COVERAGE</div><div class='stat-sub'>56 checked</div><div class='stat-line'></div></div>  </div>
+  <div class="banner banner-ok">✓  NO MISSING FUNCTIONS DETECTED.</div></section>
+
+<section class="section" id="ui">
+  <div class="sh">
+    <div class="sh-title">UI LIBRARIES</div>
+    <div class="sh-sub">13 LIBRARIES</div>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>LIBRARY</th><th>STATUS</th></tr></thead>
+      <tbody><tr class='r-pass'><td class='td-name'>OrionLib</td><td><span class='tag tag-pass'>LOADED</span></td></tr><tr class='r-pass'><td class='td-name'>Rayfield</td><td><span class='tag tag-pass'>LOADED</span></td></tr><tr class='r-pass'><td class='td-name'>SiriusLib</td><td><span class='tag tag-pass'>LOADED</span></td></tr><tr class='r-pass'><td class='td-name'>WallyV3</td><td><span class='tag tag-pass'>LOADED</span></td></tr><tr class='r-fail'><td class='td-name'>ReGui</td><td><span class='tag tag-fail'>FAILED</span></td></tr><tr class='r-pass'><td class='td-name'>Bracket</td><td><span class='tag tag-pass'>LOADED</span></td></tr><tr class='r-pass'><td class='td-name'>Obsidian</td><td><span class='tag tag-pass'>LOADED</span></td></tr><tr class='r-pass'><td class='td-name'>LinoriaLib</td><td><span class='tag tag-pass'>LOADED</span></td></tr><tr class='r-pass'><td class='td-name'>Darius (Wax)</td><td><span class='tag tag-pass'>LOADED</span></td></tr><tr class='r-pass'><td class='td-name'>Darius (Min)</td><td><span class='tag tag-pass'>LOADED</span></td></tr><tr class='r-pass'><td class='td-name'>Darius (RBXM)</td><td><span class='tag tag-pass'>LOADED</span></td></tr><tr class='r-pass'><td class='td-name'>Linoria (wis-h)</td><td><span class='tag tag-pass'>LOADED</span></td></tr><tr class='r-fail'><td class='td-name'>Monolith</td><td><span class='tag tag-fail'>FAILED</span></td></tr></tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="stress">
+  <div class="sh">
+    <div class="sh-title">STRESS TEST</div>
+    <div class="sh-sub">6 STAGES</div>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>STAGE</th><th>ITERATIONS</th><th>TIME</th><th>SPEED</th><th>STATUS</th></tr></thead>
+      <tbody><tr class='r-pass'><td class='td-name'>Very Light</td><td>10,000</td><td>0.002s</td><td class='td-ips'><span class='ips-val'>4,119,736/s</span><div class='ips-track'><div class='ips-fill' style='width:73%'></div></div></td><td><span class='tag tag-pass'>PASS</span></td></tr><tr class='r-pass'><td class='td-name'>Light</td><td>100,000</td><td>0.018s</td><td class='td-ips'><span class='ips-val'>5,578,422/s</span><div class='ips-track'><div class='ips-fill' style='width:100%'></div></div></td><td><span class='tag tag-pass'>PASS</span></td></tr><tr class='r-pass'><td class='td-name'>Medium</td><td>500,000</td><td>0.100s</td><td class='td-ips'><span class='ips-val'>4,998,908/s</span><div class='ips-track'><div class='ips-fill' style='width:89%'></div></div></td><td><span class='tag tag-pass'>PASS</span></td></tr><tr class='r-pass'><td class='td-name'>Heavy</td><td>1,000,000</td><td>0.197s</td><td class='td-ips'><span class='ips-val'>5,069,313/s</span><div class='ips-track'><div class='ips-fill' style='width:90%'></div></div></td><td><span class='tag tag-pass'>PASS</span></td></tr><tr class='r-pass'><td class='td-name'>Very Heavy</td><td>10,000,000</td><td>1.925s</td><td class='td-ips'><span class='ips-val'>5,194,488/s</span><div class='ips-track'><div class='ips-fill' style='width:93%'></div></div></td><td><span class='tag tag-pass'>PASS</span></td></tr><tr class='r-pass'><td class='td-name'>Extreme</td><td>50,000,000</td><td>9.722s</td><td class='td-ips'><span class='ips-val'>5,143,111/s</span><div class='ips-track'><div class='ips-fill' style='width:92%'></div></div></td><td><span class='tag tag-pass'>PASS</span></td></tr></tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="fibonacci">
+  <div class="sh">
+    <div class="sh-title">FIBONACCI</div>
+    <div class="sh-sub">BIG INTEGER</div>
+  </div>
+  <div class="fib-grid stat-grid">
+    <div class='stat-card stat-purple'><div class='stat-val'>F(10,000)</div><div class='stat-label'>TERM</div><div class='stat-line'></div></div>    <div class='stat-card stat-purple'><div class='stat-val'>2,090</div><div class='stat-label'>DIGITS</div><div class='stat-line'></div></div>    <div class='stat-card stat-purple'><div class='stat-val'>3.2835s</div><div class='stat-label'>TIME</div><div class='stat-line'></div></div>  </div>
+</section>
+
+</main>
+
+<footer>
+  <span>ExecEnvHealthCheck v3.2 — 2026-03-25 05:16:58</span>
+  <span>Nihon</span>
+</footer>
+
+<script>
+(function(){
+  var nav=document.querySelectorAll('nav a'),secs=document.querySelectorAll('section[id]');
+  var obs=new IntersectionObserver(function(e){
+    e.forEach(function(en){
+      if(en.isIntersecting){
+        nav.forEach(function(a){a.classList.remove('active')});
+        var l=document.querySelector('nav a[href="#'+en.target.id+'"]');
+        if(l)l.classList.add('active');
+      }
+    });
+  },{threshold:0.3});
+  secs.forEach(function(s){obs.observe(s)});
+})();
+
+function toggleTheme(){
+  var html=document.documentElement,btn=document.getElementById('theme-btn');
+  var dark=html.getAttribute('data-theme')==='dark';
+  html.setAttribute('data-theme',dark?'light':'dark');
+  btn.textContent=dark?'DARK MODE':'LIGHT MODE';
+}
+
+function toggleSrc(id,btn){
+  var row=document.getElementById(id);
+  var open=row.classList.toggle('open');
+  btn.textContent=open?'HIDE SOURCE':'VIEW SOURCE';
+  btn.classList.toggle('open',open);
+}
+</script>
+</body>
+</html>
